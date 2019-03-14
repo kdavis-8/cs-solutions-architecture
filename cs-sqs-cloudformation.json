@@ -1,0 +1,38 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Create an SQS Queue for CHAOSSEARCH",
+	"Resources": {
+		"MyQueue": {
+			"Type": "AWS::SQS::Queue",
+			"Properties": {
+				"QueueName": "CHAOSSEARCHQueue"
+			}
+		}
+	},
+	"Outputs": {
+		"QueueURL": {
+			"Description": "URL of newly created SQS Queue",
+			"Value": {
+				"Ref": "MyQueue"
+			}
+		},
+		"QueueARN": {
+			"Description": "ARN of newly created SQS Queue",
+			"Value": {
+				"Fn::GetAtt": [
+					"MyQueue",
+					"Arn"
+				]
+			}
+		},
+		"QueueName": {
+			"Description": "Name newly created SQS Queue",
+			"Value": {
+				"Fn::GetAtt": [
+					"MyQueue",
+					"QueueName"
+				]
+			}
+		}
+	}
+}
