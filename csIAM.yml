@@ -1,0 +1,105 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CHAOSSEARCH AWS Integration
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: CHAOSSEARCH Authentication
+      Parameters:
+      - CSAccountID
+      - CSExternalID
+    ParameterLabels:
+      CSAccountID:
+        default: What is your provided CHAOSSEARCH Account ID?
+      CSExternalID:
+        default: What is your provided CHAOSSEARCH External ID?
+      CSBucketName:
+        default: What bucket for CHAOSSEARCH access?
+Parameters:
+  CSAccountID:
+    Description: The provided CHAOSSEARCH Account ID
+    Type: String
+    Default: 515570774723
+  CSExternalID:
+    Description: The provided CHAOSSEARCH External ID
+    Type: String
+  CSBucketName:
+    Description: The desired CHAOSSEARCH S3 bucket name. lower-case names only
+    Type: String
+Resources:
+  CHAOSSEARCHRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:iam::'
+                - Ref: CSAccountID
+                - ":root"
+          Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              sts:ExternalId:
+                Ref: CSExternalID
+  CHAOSSEARCHPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CHAOSSEARCHPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - s3:ListAllMyBuckets
+          - s3:GetBucketLocation
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - s3:List*
+          Resource:
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: CSBucketName
+              - "/*"
+        - Effect: Allow
+          Action:
+          - s3:Get*
+          - s3:PutObjectTagging
+          Resource:
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: CSBucketName
+              - "/*"
+        - Effect: Allow
+          Action: "*"
+          Resource:
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: CSExternalID
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: CSExternalID
+              - "/*"
+      Roles:
+      - Ref: CHAOSSEARCHRole
+Outputs:
+  RoleARN:
+    Description: The ARN of the new CHAOSSEARCH Role
+    Value:
+      Fn::GetAtt:
+      - CHAOSSEARCHRole
+      - Arn
+  S3Bucket:
+    Description: The name of the CHAOSSEARCH S3 bucket that was created
+    Value:
+      Ref: CSBucketName
